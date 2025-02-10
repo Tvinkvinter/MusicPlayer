@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/page_1"
+        android:enabled="true"
+        android:icon="@drawable/ic_explore_24"
+        android:title="@string/bottom_navigation_view_menu_explore_title" />
+    <item
+        android:id="@+id/page_2"
+        android:enabled="true"
+        android:icon="@drawable/ic_downloaded_24"
+        android:title="@string/bottom_navigation_view_menu_downloaded_title" />
+</menu>
