@@ -9,10 +9,12 @@
 
     <SearchView
         android:id="@+id/search_view"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="?attr/colorSurface"
-        android:layoutDirection="rtl"
+        android:iconifiedByDefault="false"
+        android:queryHint="@string/base_track_list_fragment_searchview_hint"
+        android:theme="@style/SearchViewStyle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
