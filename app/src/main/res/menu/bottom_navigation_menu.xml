@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/page_1"
+        android:id="@+id/apiTrackListFragment"
         android:enabled="true"
         android:icon="@drawable/ic_explore_24"
         android:title="@string/bottom_navigation_view_menu_explore_title" />

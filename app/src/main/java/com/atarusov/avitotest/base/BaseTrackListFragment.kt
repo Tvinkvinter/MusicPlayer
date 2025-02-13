@@ -7,10 +7,10 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.atarusov.avitotest.databinding.FragmentBaseTrackListBinding
 
-class BaseTrackListFragment : Fragment() {
+open class BaseTrackListFragment : Fragment() {
 
     private var _binding: FragmentBaseTrackListBinding? = null
-    private val binding get() = _binding!!
+    protected val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
