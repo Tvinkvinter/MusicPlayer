@@ -5,4 +5,10 @@
     <string name="bottom_navigation_view_menu_explore_title">Explore</string>
     <string name="bottom_navigation_view_menu_downloaded_title">Downloaded</string>
 
+    <!-- BaseTrackListFragment -->
+    <string name="base_track_list_fragment_searchview_hint">Search</string>
+    <string name="base_track_list_fragment_unknown_error">Something went wrong</string>
+    <string name="base_track_list_fragment_no_tracks">No tracks for this query :(</string>
+    <string name="base_track_list_fragment_try_again_button">Try again</string>
+
 </resources>
