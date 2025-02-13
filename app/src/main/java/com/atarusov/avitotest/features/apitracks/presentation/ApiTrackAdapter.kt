@@ -10,9 +10,11 @@ import com.atarusov.avitotest.databinding.TrackItemBinding
 import com.atarusov.avitotest.features.apitracks.domain.model.Track
 import com.bumptech.glide.Glide
 
-class ApiTrackAdapter : ListAdapter<Track, ApiTrackAdapter.TrackViewHolder>(TrackDiffCallback()) {
+class ApiTrackAdapter(
+    val onClickAction: (id: Long) -> Unit
+) : ListAdapter<Track, ApiTrackAdapter.TrackViewHolder>(TrackDiffCallback()) {
 
-    class TrackViewHolder(val binding: TrackItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class TrackViewHolder(val binding: TrackItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(track: Track) {
             Glide.with(itemView)
                 .load(track.coverURL)
@@ -21,6 +23,10 @@ class ApiTrackAdapter : ListAdapter<Track, ApiTrackAdapter.TrackViewHolder>(Trac
 
             binding.tvTrackTitle.text = track.trackTitle
             binding.tvArtistName.text = track.artistName
+
+            itemView.setOnClickListener {
+                onClickAction.invoke(track.id)
+            }
         }
     }
 
