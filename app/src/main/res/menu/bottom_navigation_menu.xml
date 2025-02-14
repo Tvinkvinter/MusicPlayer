@@ -6,7 +6,7 @@
         android:icon="@drawable/ic_explore_24"
         android:title="@string/bottom_navigation_view_menu_explore_title" />
     <item
-        android:id="@+id/page_2"
+        android:id="@+id/localTrackListFragment"
         android:enabled="true"
         android:icon="@drawable/ic_downloaded_24"
         android:title="@string/bottom_navigation_view_menu_downloaded_title" />

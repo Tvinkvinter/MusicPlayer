@@ -7,6 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.navigation.findNavController
+import androidx.navigation.ui.setupWithNavController
 import com.atarusov.avitotest.databinding.ActivityMainBinding
 
 
@@ -32,5 +34,11 @@ class MainActivity : AppCompatActivity() {
                 0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
             )
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val navController = findNavController(R.id.fragment_container)
+        binding.bottomNavigationView.setupWithNavController(navController)
     }
 }
