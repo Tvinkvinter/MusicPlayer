@@ -144,7 +144,6 @@ class PlayerService : Service() {
     fun getTrackTimeFlow(): Flow<Pair<Long, Long>> {
         return flow {
             while (true) {
-                Log.i("PlayerService", "CurrentPosition = ${player.currentPosition}")
                 val timeElapsed = player.currentPosition
                 val totalTime = player.duration
                 emit(timeElapsed to totalTime)
