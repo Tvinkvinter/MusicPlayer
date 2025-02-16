@@ -8,5 +8,5 @@ import dagger.Module
 @Module
 interface PlayerBindModule {
     @Binds
-    fun bindTracRepository(trackRepositoryImpl: TrackRepositoryImpl): TrackRepository
+    fun bindTrackRepository(trackRepositoryImpl: TrackRepositoryImpl): TrackRepository
 }

@@ -7,6 +7,7 @@ import com.atarusov.avitotest.features.localtracks.di.LocalTrackListModule
 import com.atarusov.avitotest.features.localtracks.presentation.LocalTrackListFragment
 import com.atarusov.avitotest.features.player.di.PlayerModule
 import com.atarusov.avitotest.features.player.presentation.PlayerFragment
+import com.atarusov.avitotest.features.player.presentation.service.PlayerService
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
@@ -30,4 +31,5 @@ interface AppComponent {
     fun inject(fragment: ApiTrackListFragment)
     fun inject(fragment: LocalTrackListFragment)
     fun inject(fragment: PlayerFragment)
+    fun inject(service: PlayerService)
 }

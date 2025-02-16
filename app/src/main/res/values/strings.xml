@@ -14,4 +14,14 @@
     <!-- LocalTrackListFragment -->
     <string name="local_track_list_fragment_permission_denied">Permission denied.Please grant the required permission in settings</string>
 
+    <!-- PlayerFragment -->
+    <string name="player_fragment_time">%02d:%02d</string>
+
+    <!-- Accessibility -->
+    <string name="accessibility_play_pause_btn">Play/Pause song</string>
+    <string name="accessibility_prev_btn">Prev song</string>
+    <string name="accessibility_next_btn">Next song</string>
+    <string name="accessibility_rewind_forward_btn">Rewind forward</string>
+    <string name="accessibility_rewind_back_btn">Rewind back</string>
+
 </resources>

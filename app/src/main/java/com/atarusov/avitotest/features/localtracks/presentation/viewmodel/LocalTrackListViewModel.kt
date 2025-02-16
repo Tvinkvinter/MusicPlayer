@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.atarusov.avitotest.features.localtracks.domain.TrackRepository
 import com.atarusov.avitotest.features.localtracks.domain.model.Track
+import com.atarusov.avitotest.features.player.domain.model.SourceType
+import com.atarusov.avitotest.features.player.presentation.PlaylistByIds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +36,13 @@ class LocalTrackListViewModel(
                 else showPermissionDenied()
             }
 
-            is Action.ClickOnTrack -> sendEffect(Effect.NavigateToPlayer(action.trackId))
+            is Action.ClickOnTrack -> sendEffect(Effect.NavigateToPlayer(
+                PlaylistByIds(
+                    currentTrackId = action.trackId,
+                    allTrackIds = _state.value.tracks.map { it.id },
+                    type = SourceType.Local,
+                )
+            ))
 
             Action.RepeatRequest -> {
                 errorQuery?.let {

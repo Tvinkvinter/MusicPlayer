@@ -1,5 +1,7 @@
 package com.atarusov.avitotest.features.player.di
 
+import android.content.Context
+import androidx.media3.exoplayer.ExoPlayer
 import com.atarusov.avitotest.features.player.data.remote.TrackService
 import dagger.Module
 import dagger.Provides
@@ -13,5 +15,11 @@ object PlayerModule {
     @Provides
     fun provideTracksService(retrofit: Retrofit): TrackService {
         return retrofit.create(TrackService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExoPlayer(context: Context): ExoPlayer {
+        return ExoPlayer.Builder(context).build()
     }
 }

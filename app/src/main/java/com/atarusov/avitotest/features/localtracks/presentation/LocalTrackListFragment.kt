@@ -13,6 +13,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.atarusov.avitotest.App
 import com.atarusov.avitotest.R
@@ -82,7 +83,13 @@ class LocalTrackListFragment : BaseTrackListFragment() {
                     viewModel.effect.collect { effect ->
                         when (effect) {
                             Effect.RequestPermission -> requestAudioPermissionIfNeeded()
-                            is Effect.NavigateToPlayer -> TODO()
+                            is Effect.NavigateToPlayer -> {
+                                findNavController().navigate(
+                                    LocalTrackListFragmentDirections.actionLocalTrackListFragmentToPlayerFragment(
+                                        effect.playlist
+                                    )
+                                )
+                            }
                         }
                     }
                 }

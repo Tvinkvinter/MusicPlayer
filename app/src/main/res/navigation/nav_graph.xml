@@ -8,10 +8,27 @@
         android:id="@+id/apiTrackListFragment"
         android:name="com.atarusov.avitotest.features.apitracks.presentation.ApiTrackListFragment"
         android:label="ApiTrackListFragment"
-        tools:layout="@layout/fragment_base_track_list"/>
+        tools:layout="@layout/fragment_base_track_list">
+        <action
+            android:id="@+id/action_apiTrackListFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
     <fragment
         android:id="@+id/localTrackListFragment"
         android:name="com.atarusov.avitotest.features.localtracks.presentation.LocalTrackListFragment"
         android:label="LocalTrackListFragment"
-        tools:layout="@layout/fragment_base_track_list" />
+        tools:layout="@layout/fragment_base_track_list" >
+        <action
+            android:id="@+id/action_localTrackListFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/playerFragment"
+        android:name="com.atarusov.avitotest.features.player.presentation.PlayerFragment"
+        android:label="fragment_player"
+        tools:layout="@layout/fragment_player" >
+        <argument
+            android:name="playlist"
+            app:argType="com.atarusov.avitotest.features.player.presentation.PlaylistByIds" />
+    </fragment>
 </navigation>
