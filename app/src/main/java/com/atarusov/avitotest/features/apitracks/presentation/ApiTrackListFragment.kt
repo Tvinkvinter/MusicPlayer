@@ -8,6 +8,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.atarusov.avitotest.App
 import com.atarusov.avitotest.R
@@ -68,8 +69,12 @@ class ApiTrackListFragment : BaseTrackListFragment() {
                 }
 
                 launch {
-                    viewModel.navigateToPlayer.collect { id ->
-                        // TODO()
+                    viewModel.navigateToPlayer.collect { playlist ->
+                        findNavController().navigate(
+                            ApiTrackListFragmentDirections.actionApiTrackListFragmentToPlayerFragment(
+                                playlist
+                            )
+                        )
                     }
                 }
             }

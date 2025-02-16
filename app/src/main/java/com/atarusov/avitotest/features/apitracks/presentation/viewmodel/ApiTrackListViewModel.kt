@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.atarusov.avitotest.features.apitracks.domain.TrackRepository
 import com.atarusov.avitotest.features.apitracks.domain.model.Track
+import com.atarusov.avitotest.features.player.domain.model.SourceType
+import com.atarusov.avitotest.features.player.presentation.PlaylistByIds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,9 +22,8 @@ class ApiTrackListViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state
-
-    private val _navigateToPlayer = MutableSharedFlow<Long>()
-    val navigateToPlayer: SharedFlow<Long> = _navigateToPlayer
+    private val _navigateToPlayer = MutableSharedFlow<PlaylistByIds>()
+    val navigateToPlayer: SharedFlow<PlaylistByIds> = _navigateToPlayer
 
     // not null if error occurred during searching with some query
     private var errorQuery: String? = null
@@ -33,7 +34,9 @@ class ApiTrackListViewModel(
 
     fun onAction(action: Action) {
         when (action) {
-            is Action.ClickOnTrack -> navigateToPlayer(action.trackId)
+            is Action.ClickOnTrack -> navigateToPlayer(
+                action.trackId,
+                _state.value.tracks.map { it.id })
 
             Action.RepeatRequest -> {
                 errorQuery?.let {
@@ -48,9 +51,15 @@ class ApiTrackListViewModel(
         }
     }
 
-    private fun navigateToPlayer(id: Long) {
+    private fun navigateToPlayer(trackId: Long, playlistIds: List<Long>) {
         viewModelScope.launch {
-            _navigateToPlayer.emit(id)
+            _navigateToPlayer.emit(
+                PlaylistByIds(
+                    currentTrackId = trackId,
+                    allTrackIds = playlistIds,
+                    type = SourceType.FromApi
+                )
+            )
         }
     }
 
