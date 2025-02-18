@@ -8,8 +8,8 @@ import com.atarusov.avitotest.features.player.domain.TrackRepository
 import com.atarusov.avitotest.features.player.domain.model.SourceType
 import com.atarusov.avitotest.features.player.domain.model.Track
 import com.atarusov.avitotest.features.player.presentation.PlaylistByIds
+import com.atarusov.avitotest.features.player.presentation.service.PlayerService
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -63,32 +63,33 @@ class PlayerViewModel(
         }
     }
 
-    private fun onServiceConnected() {
-        isServiceConnected = true
-        sendEffect(
-            ServiceEffect.RequestTrackTimeFlow { flow ->
-                if (!isSubscribedOnTrackTime) subscribeOnTrackTimeUpdates(flow)
+    fun bindService(playerService: PlayerService) {
+        if (isSubscribedOnTrackTime) return
+        startPlaybackTimeRetrieving(playerService)
+    }
+    
+    private fun startPlaybackTimeRetrieving(playerService: PlayerService) {
+        viewModelScope.launch {
+            playerService.playbackTime.collect { playbackState ->
+                isSubscribedOnTrackTime = true
+                playbackState?.let {
+                    val timeElapsed = (playbackState.timeElapsed / 1000).toInt()
+                    val timeTotal = (max(0, playbackState.timeTotal) / 1000).toInt()
+                    _state.value = _state.value.copy(
+                        timeElapsed = timeElapsed,
+                        timeTotal = max(0, timeTotal),
+                        isPlaying = timeElapsed < timeTotal
+                    )
+                }
             }
-        )
-        trackToSetOnServiceIsReady?.let {
-            sendEffect(ServiceEffect.SetTrackAndPlay(it))
-            trackToSetOnServiceIsReady = null
         }
     }
 
-    private fun subscribeOnTrackTimeUpdates(flow: Flow<Pair<Long, Long>>) {
-        viewModelScope.launch {
-            flow.collectLatest { timePair ->
-                isSubscribedOnTrackTime = true
-
-                val timeElapsed = (timePair.first / 1000).toInt()
-                val timeTotal = (max(0, timePair.second) / 1000).toInt()
-                _state.value = _state.value.copy(
-                    timeElapsed = timeElapsed,
-                    timeTotal = max(0, timeTotal),
-                    isPlaying = timeElapsed < timeTotal
-                )
-            }
+    private fun onServiceConnected() {
+        isServiceConnected = true
+        trackToSetOnServiceIsReady?.let {
+            sendEffect(ServiceEffect.SetTrackAndPlay(it))
+            trackToSetOnServiceIsReady = null
         }
     }
 

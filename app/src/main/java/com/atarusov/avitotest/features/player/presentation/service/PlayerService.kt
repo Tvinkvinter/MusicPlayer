@@ -11,13 +11,16 @@ import android.graphics.drawable.Icon
 import android.os.Binder
 import android.os.IBinder
 import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.atarusov.avitotest.App
 import com.atarusov.avitotest.R
 import com.atarusov.avitotest.features.player.domain.model.Track
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -28,6 +31,9 @@ class PlayerService : Service() {
     lateinit var player: ExoPlayer
     private var currentTrack: Track? = null
     private val binder = LocalBinder()
+
+    private val _playbackTime = MutableStateFlow<PlaybackTime?>(null)
+    val playbackTime: StateFlow<PlaybackTime?> = _playbackTime
 
     inner class LocalBinder : Binder() {
         fun getService(): PlayerService = this@PlayerService
@@ -40,6 +46,7 @@ class PlayerService : Service() {
         (applicationContext as App).appComponent.inject(this)
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification(false))
+        startPlaybackTimeTransmission()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -131,23 +138,14 @@ class PlayerService : Service() {
     }
 
 
-    fun subscribeConsumerOnProgress(consumer: (Flow<Pair<Long, Long>>) -> Unit) {
-        player.addListener(object : Player.Listener {
-            override fun onPlaybackStateChanged(state: Int) {
-                if (state == Player.STATE_READY) {
-                    consumer.invoke(getTrackTimeFlow())
-                }
-            }
-        })
-    }
-
-    fun getTrackTimeFlow(): Flow<Pair<Long, Long>> {
-        return flow {
+    private fun startPlaybackTimeTransmission() {
+        CoroutineScope(Dispatchers.Main).launch {
             while (true) {
-                val timeElapsed = player.currentPosition
-                val totalTime = player.duration
-                emit(timeElapsed to totalTime)
-                kotlinx.coroutines.delay(100)
+                _playbackTime.value = PlaybackTime(
+                    timeElapsed = player.currentPosition,
+                    timeTotal = player.duration
+                )
+                delay(1000)
             }
         }
     }

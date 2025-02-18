@@ -67,6 +67,7 @@ class PlayerFragment : Fragment() {
                     NotificationAction.REWIND_BACK -> viewModel.onAction(Action.RewindBack)
                 }
             }
+            viewModel.bindService(playerService!!)
             Log.i("PlayerFragment", "Service bounded by ${this}")
         }
 
@@ -229,8 +230,6 @@ class PlayerFragment : Fragment() {
             ServiceEffect.Pause -> playerService?.pause()
             is ServiceEffect.Seek -> playerService?.seek(effect.time)
             is ServiceEffect.Init -> initService()
-            is ServiceEffect.RequestTrackTimeFlow ->
-                playerService?.subscribeConsumerOnProgress(effect.subscribeFunction)
         }
     }
 
