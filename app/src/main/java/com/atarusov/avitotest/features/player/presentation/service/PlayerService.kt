@@ -15,17 +15,21 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.atarusov.avitotest.App
 import com.atarusov.avitotest.R
 import com.atarusov.avitotest.features.player.domain.model.Track
+import com.atarusov.avitotest.features.player.presentation.viewmodel.ServiceCommand
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 class PlayerService : Service() {
-    var listener: PlayerNotificationListener? = null
 
     @Inject
     lateinit var player: ExoPlayer
@@ -34,6 +38,11 @@ class PlayerService : Service() {
 
     private val _playbackTime = MutableStateFlow<PlaybackTime?>(null)
     val playbackTime: StateFlow<PlaybackTime?> = _playbackTime
+
+    private val _notificationActions = MutableSharedFlow<NotificationAction>()
+    val notificationActions: SharedFlow<NotificationAction> = _notificationActions
+
+    private var isServiceCommandReceivingStarted = false
 
     inner class LocalBinder : Binder() {
         fun getService(): PlayerService = this@PlayerService
@@ -52,7 +61,10 @@ class PlayerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.action?.let {
             val notificationAction = NotificationAction.valueOf(it)
-            listener?.doNotificationAction(notificationAction)
+
+            CoroutineScope(Dispatchers.Main).launch {
+                _notificationActions.emit(notificationAction)
+            }
         }
         return START_NOT_STICKY
     }
@@ -150,14 +162,30 @@ class PlayerService : Service() {
         }
     }
 
-    fun setTrackAndPlay(track: Track) {
+    fun startServiceCommandReceiving(serverCommands: Flow<ServiceCommand>){
+        if (isServiceCommandReceivingStarted) return
+        isServiceCommandReceivingStarted = true
+        CoroutineScope(Dispatchers.Main).launch {
+            serverCommands.collectLatest { serviceCommand ->
+                when(serviceCommand) {
+                    ServiceCommand.Pause -> pause()
+                    ServiceCommand.Play -> play()
+                    is ServiceCommand.Seek -> seek(serviceCommand.time)
+                    is ServiceCommand.SetTrackAndPlay -> setTrackAndPlay(serviceCommand.track)
+                    ServiceCommand.StopService -> stopSelf()
+                }
+            }
+        }
+    }
+
+    private fun setTrackAndPlay(track: Track) {
         if (currentTrack?.trackURI == track.trackURI) return
         currentTrack = track
         player.setMediaItem(MediaItem.fromUri(track.trackURI))
         play()
     }
 
-    fun play() {
+    private fun play() {
         player.prepare()
         player.play()
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -165,12 +193,12 @@ class PlayerService : Service() {
 
     }
 
-    fun pause() {
+    private fun pause() {
         startForeground(NOTIFICATION_ID, createNotification(false))
         player.pause()
     }
 
-    fun seek(time: Long) {
+    private fun seek(time: Long) {
         player.seekTo(time)
         play()
     }
@@ -182,7 +210,6 @@ class PlayerService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        listener = null
         player.apply {
             stop()
             release()

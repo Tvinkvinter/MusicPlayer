@@ -18,7 +18,6 @@ object PlayerModule {
     }
 
     @Provides
-    @Singleton
     fun provideExoPlayer(context: Context): ExoPlayer {
         return ExoPlayer.Builder(context).build()
     }

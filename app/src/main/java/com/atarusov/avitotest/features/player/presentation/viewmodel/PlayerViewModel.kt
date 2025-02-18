@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.atarusov.avitotest.features.player.domain.TrackRepository
 import com.atarusov.avitotest.features.player.domain.model.SourceType
-import com.atarusov.avitotest.features.player.domain.model.Track
 import com.atarusov.avitotest.features.player.presentation.PlaylistByIds
+import com.atarusov.avitotest.features.player.presentation.service.NotificationAction
 import com.atarusov.avitotest.features.player.presentation.service.PlayerService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -27,25 +27,55 @@ class PlayerViewModel(
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state
 
-    private val _serviceEffect = MutableSharedFlow<ServiceEffect>()
-    val serviceEffect: SharedFlow<ServiceEffect> = _serviceEffect
+    private val _serviceCommand = MutableSharedFlow<ServiceCommand>(replay = 1)
+    val serviceCommand: SharedFlow<ServiceCommand> = _serviceCommand
 
-    private var isServiceConnected = false
-    private var isSubscribedOnTrackTime = false
+    private var isServiceBound = false
 
     private var trackIds = emptyList<Long>()
     private var currentTrackIdIndex = 0
     private var sourceType = SourceType.Local
 
-    private var trackToSetOnServiceIsReady: Track? = null
+    fun bindService(playerService: PlayerService) {
+        if (isServiceBound) return
+        startPlaybackTimeRetrieving(playerService)
+        startNotificationActionRetrieving(playerService)
+        isServiceBound = true
+    }
 
-    init {
-        sendEffect(ServiceEffect.Init)
+    private fun startPlaybackTimeRetrieving(playerService: PlayerService) {
+        viewModelScope.launch {
+            playerService.playbackTime.collectLatest { playbackState ->
+                playbackState?.let {
+                    if (!state.value.isPlaying) return@let
+                    val timeElapsed = (playbackState.timeElapsed / 1000).toInt()
+                    val timeTotal = (max(0, playbackState.timeTotal) / 1000).toInt()
+                    _state.value = _state.value.copy(
+                        timeElapsed = timeElapsed,
+                        timeTotal = max(0, timeTotal),
+                        isPlaying = timeElapsed <= timeTotal
+                    )
+                }
+            }
+        }
+    }
+
+    private fun startNotificationActionRetrieving(playerService: PlayerService){
+        viewModelScope.launch {
+            playerService.notificationActions.collectLatest { notificationAction ->
+                when (notificationAction) {
+                    NotificationAction.PLAY_PAUSE -> onPlayPause()
+                    NotificationAction.PREV -> onPrev()
+                    NotificationAction.NEXT -> onNext()
+                    NotificationAction.REWIND_BACK -> onRewindBack()
+                    NotificationAction.REWIND_FORWARD -> onRewindForward()
+                }
+            }
+        }
     }
 
     fun onAction(action: Action) {
         when (action) {
-            Action.NotifyServiceConnected -> onServiceConnected()
             Action.PlayPause -> onPlayPause()
             Action.Next -> onNext()
             Action.Prev -> onPrev()
@@ -53,52 +83,22 @@ class PlayerViewModel(
             is Action.Seek -> onSeek(action.time)
             Action.RewindBack -> onRewindBack()
             Action.RewindForward -> onRewindForward()
+            Action.CloseFragment -> sendCommand(ServiceCommand.StopService)
         }
     }
 
-
-    private fun sendEffect(serviceEffect: ServiceEffect) {
+    private fun sendCommand(serviceCommand: ServiceCommand) {
         viewModelScope.launch {
-            _serviceEffect.emit(serviceEffect)
-        }
-    }
-
-    fun bindService(playerService: PlayerService) {
-        if (isSubscribedOnTrackTime) return
-        startPlaybackTimeRetrieving(playerService)
-    }
-    
-    private fun startPlaybackTimeRetrieving(playerService: PlayerService) {
-        viewModelScope.launch {
-            playerService.playbackTime.collect { playbackState ->
-                isSubscribedOnTrackTime = true
-                playbackState?.let {
-                    val timeElapsed = (playbackState.timeElapsed / 1000).toInt()
-                    val timeTotal = (max(0, playbackState.timeTotal) / 1000).toInt()
-                    _state.value = _state.value.copy(
-                        timeElapsed = timeElapsed,
-                        timeTotal = max(0, timeTotal),
-                        isPlaying = timeElapsed < timeTotal
-                    )
-                }
-            }
-        }
-    }
-
-    private fun onServiceConnected() {
-        isServiceConnected = true
-        trackToSetOnServiceIsReady?.let {
-            sendEffect(ServiceEffect.SetTrackAndPlay(it))
-            trackToSetOnServiceIsReady = null
+            _serviceCommand.emit(serviceCommand)
         }
     }
 
     private fun onPlayPause() {
         if (state.value.isPlaying) {
-            sendEffect(ServiceEffect.Pause)
+            sendCommand(ServiceCommand.Pause)
             _state.value = _state.value.copy(isPlaying = false)
         } else {
-            sendEffect(ServiceEffect.Play)
+            sendCommand(ServiceCommand.Play)
             _state.value = _state.value.copy(isPlaying = true)
         }
     }
@@ -140,15 +140,14 @@ class PlayerViewModel(
                     Log.e("PlayerViewModel", error.message, error)
                 }
                 .collectLatest { track ->
-                    if (isServiceConnected) sendEffect(ServiceEffect.SetTrackAndPlay(track))
-                    else trackToSetOnServiceIsReady = track
+                    sendCommand(ServiceCommand.SetTrackAndPlay(track))
                     _state.value = _state.value.copy(track = track, isPlaying = true)
                 }
         }
     }
 
     private fun onSeek(time: Int) {
-        sendEffect(ServiceEffect.Seek(time * 1000L))
+        sendCommand(ServiceCommand.Seek(time * 1000L))
         _state.value = _state.value.copy(
             timeElapsed = time,
             isPlaying = true
