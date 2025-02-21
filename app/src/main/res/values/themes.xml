@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.AvitoTest" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.MusicPlayer" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="android:colorBackground">@color/background</item>
         <item name="colorSurface">@color/surface</item>
@@ -11,5 +11,5 @@
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <style name="Theme.AvitoTest" parent="Base.Theme.AvitoTest" />
+    <style name="Theme.MusicPlayer" parent="Base.Theme.MusicPlayer" />
 </resources>

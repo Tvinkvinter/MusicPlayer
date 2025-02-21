@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.atarusov.avitotest"
+    namespace = "com.atarusov.musicplayer"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.atarusov.avitotest"
+        applicationId = "com.atarusov.musicplayer"
         minSdk = 28
         targetSdk = 35
         versionCode = 1

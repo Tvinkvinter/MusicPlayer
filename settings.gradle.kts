@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AvitoTest"
+rootProject.name = "MusicPlayer"
 include(":app")
  

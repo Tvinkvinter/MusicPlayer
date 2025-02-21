@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AvitoTest</string>
+    <string name="app_name">MusicPlayer</string>
 
     <!-- Bottom Navigation View -->
     <string name="bottom_navigation_view_menu_explore_title">Explore</string>
