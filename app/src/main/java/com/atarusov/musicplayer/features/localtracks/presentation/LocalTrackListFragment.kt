@@ -74,13 +74,13 @@ class LocalTrackListFragment : BaseTrackListFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.state.collectLatest { state ->
+                    viewModel.state.collect { state ->
                         applyState(state)
                     }
                 }
 
                 launch {
-                    viewModel.effect.collect { effect ->
+                    viewModel.effect.collectLatest { effect ->
                         when (effect) {
                             Effect.RequestPermission -> requestAudioPermissionIfNeeded()
                             is Effect.NavigateToPlayer -> {

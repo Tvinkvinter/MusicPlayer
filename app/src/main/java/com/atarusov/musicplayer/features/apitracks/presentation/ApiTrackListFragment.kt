@@ -63,13 +63,13 @@ class ApiTrackListFragment : BaseTrackListFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.state.collectLatest { state ->
+                    viewModel.state.collect { state ->
                         applyState(state)
                     }
                 }
 
                 launch {
-                    viewModel.navigateToPlayer.collect { playlist ->
+                    viewModel.navigateToPlayer.collectLatest { playlist ->
                         findNavController().navigate(
                             ApiTrackListFragmentDirections.actionApiTrackListFragmentToPlayerFragment(
                                 playlist
