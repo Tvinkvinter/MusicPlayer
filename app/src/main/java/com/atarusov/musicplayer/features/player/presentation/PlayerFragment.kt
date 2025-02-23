@@ -9,11 +9,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -21,6 +21,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.atarusov.musicplayer.App
 import com.atarusov.musicplayer.R
@@ -57,23 +58,13 @@ class PlayerFragment : Fragment() {
             val binder = service as PlayerService.LocalBinder
             isBound = true
             playerService = binder.getService()
-            viewModel.onAction(Action.NotifyServiceConnected)
-            playerService?.listener = PlayerNotificationListener { action ->
-                when (action) {
-                    NotificationAction.PLAY_PAUSE -> viewModel.onAction(Action.PlayPause)
-                    NotificationAction.PREV -> viewModel.onAction(Action.Prev)
-                    NotificationAction.NEXT -> viewModel.onAction(Action.Next)
-                    NotificationAction.REWIND_FORWARD -> viewModel.onAction(Action.RewindForward)
-                    NotificationAction.REWIND_BACK -> viewModel.onAction(Action.RewindBack)
-                }
-            }
-            Log.i("PlayerFragment", "Service bounded by ${this}")
+            viewModel.bindService(playerService!!)
+            playerService!!.startServiceCommandReceiving(viewModel.serviceCommand)
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
             playerService = null
             isBound = false
-            Log.i("PlayerFragment", "Service UNbounded by ${this}")
         }
     }
 
@@ -98,21 +89,13 @@ class PlayerFragment : Fragment() {
         checkAndRequestPermissionsIfNeeded()
 
         viewModel.onAction(Action.SetPlaylist(playlist))
-
+        initService()
         setListeners()
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.state.collectLatest { state ->
-                        applyState(state)
-                    }
-                }
-
-                launch {
-                    viewModel.serviceEffect.collectLatest { effect ->
-                        applyEffect(effect)
-                    }
+                viewModel.state.collectLatest { state ->
+                    applyState(state)
                 }
             }
         }
@@ -173,6 +156,13 @@ class PlayerFragment : Fragment() {
             viewModel.onAction(Action.Next)
         }
 
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                viewModel.onAction(Action.CloseFragment)
+                findNavController().navigateUp()
+            }
+        })
+
     }
 
     private fun applyState(state: State) {
@@ -222,20 +212,7 @@ class PlayerFragment : Fragment() {
         binding.btnNext.isEnabled = state.isNextButtonEnabled
     }
 
-    private fun applyEffect(effect: ServiceEffect) {
-        when (effect) {
-            is ServiceEffect.SetTrackAndPlay -> playerService?.setTrackAndPlay(effect.track)
-            ServiceEffect.Play -> playerService?.play()
-            ServiceEffect.Pause -> playerService?.pause()
-            is ServiceEffect.Seek -> playerService?.seek(effect.time)
-            is ServiceEffect.Init -> initService()
-            is ServiceEffect.RequestTrackTimeFlow ->
-                playerService?.subscribeConsumerOnProgress(effect.subscribeFunction)
-        }
-    }
-
     private fun initService() {
-        Log.i("PlayerFragment", "Service init")
         val intent = Intent(requireActivity().applicationContext, PlayerService::class.java)
         requireActivity().startForegroundService(intent)
         requireActivity().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
@@ -247,6 +224,11 @@ class PlayerFragment : Fragment() {
             requireActivity().startForegroundService(intent)
             requireActivity().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        requireActivity().unbindService(serviceConnection)
     }
 
     override fun onDestroy() {

@@ -11,23 +11,38 @@ import android.graphics.drawable.Icon
 import android.os.Binder
 import android.os.IBinder
 import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.atarusov.musicplayer.App
 import com.atarusov.musicplayer.R
 import com.atarusov.musicplayer.features.player.domain.model.Track
+import com.atarusov.musicplayer.features.player.presentation.viewmodel.ServiceCommand
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 class PlayerService : Service() {
-    var listener: PlayerNotificationListener? = null
 
     @Inject
     lateinit var player: ExoPlayer
     private var currentTrack: Track? = null
     private val binder = LocalBinder()
+
+    private val _playbackTime = MutableStateFlow<PlaybackTime?>(null)
+    val playbackTime: StateFlow<PlaybackTime?> = _playbackTime
+
+    private val _notificationActions = MutableSharedFlow<NotificationAction>()
+    val notificationActions: SharedFlow<NotificationAction> = _notificationActions
+
+    private var isServiceCommandReceivingStarted = false
 
     inner class LocalBinder : Binder() {
         fun getService(): PlayerService = this@PlayerService
@@ -40,12 +55,16 @@ class PlayerService : Service() {
         (applicationContext as App).appComponent.inject(this)
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification(false))
+        startPlaybackTimeTransmission()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.action?.let {
             val notificationAction = NotificationAction.valueOf(it)
-            listener?.doNotificationAction(notificationAction)
+
+            CoroutineScope(Dispatchers.Main).launch {
+                _notificationActions.emit(notificationAction)
+            }
         }
         return START_NOT_STICKY
     }
@@ -131,35 +150,42 @@ class PlayerService : Service() {
     }
 
 
-    fun subscribeConsumerOnProgress(consumer: (Flow<Pair<Long, Long>>) -> Unit) {
-        player.addListener(object : Player.Listener {
-            override fun onPlaybackStateChanged(state: Int) {
-                if (state == Player.STATE_READY) {
-                    consumer.invoke(getTrackTimeFlow())
-                }
-            }
-        })
-    }
-
-    fun getTrackTimeFlow(): Flow<Pair<Long, Long>> {
-        return flow {
+    private fun startPlaybackTimeTransmission() {
+        CoroutineScope(Dispatchers.Main).launch {
             while (true) {
-                val timeElapsed = player.currentPosition
-                val totalTime = player.duration
-                emit(timeElapsed to totalTime)
-                kotlinx.coroutines.delay(100)
+                _playbackTime.value = PlaybackTime(
+                    timeElapsed = player.currentPosition,
+                    timeTotal = player.duration
+                )
+                delay(1000)
             }
         }
     }
 
-    fun setTrackAndPlay(track: Track) {
+    fun startServiceCommandReceiving(serverCommands: Flow<ServiceCommand>){
+        if (isServiceCommandReceivingStarted) return
+        isServiceCommandReceivingStarted = true
+        CoroutineScope(Dispatchers.Main).launch {
+            serverCommands.collectLatest { serviceCommand ->
+                when(serviceCommand) {
+                    ServiceCommand.Pause -> pause()
+                    ServiceCommand.Play -> play()
+                    is ServiceCommand.Seek -> seek(serviceCommand.time)
+                    is ServiceCommand.SetTrackAndPlay -> setTrackAndPlay(serviceCommand.track)
+                    ServiceCommand.StopService -> stopSelf()
+                }
+            }
+        }
+    }
+
+    private fun setTrackAndPlay(track: Track) {
         if (currentTrack?.trackURI == track.trackURI) return
         currentTrack = track
         player.setMediaItem(MediaItem.fromUri(track.trackURI))
         play()
     }
 
-    fun play() {
+    private fun play() {
         player.prepare()
         player.play()
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -167,12 +193,12 @@ class PlayerService : Service() {
 
     }
 
-    fun pause() {
+    private fun pause() {
         startForeground(NOTIFICATION_ID, createNotification(false))
         player.pause()
     }
 
-    fun seek(time: Long) {
+    private fun seek(time: Long) {
         player.seekTo(time)
         play()
     }
@@ -184,7 +210,6 @@ class PlayerService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        listener = null
         player.apply {
             stop()
             release()
