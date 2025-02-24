@@ -6,10 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.atarusov.musicplayer.features.player.domain.TrackRepository
 import com.atarusov.musicplayer.features.player.domain.model.SourceType
-import com.atarusov.musicplayer.features.player.domain.model.Track
-import com.atarusov.musicplayer.features.player.presentation.PlaylistByIds
-import com.atarusov.musicplayer.features.player.domain.TrackRepository
-import com.atarusov.musicplayer.features.player.domain.model.SourceType
 import com.atarusov.musicplayer.features.player.presentation.PlaylistByIds
 import com.atarusov.musicplayer.features.player.presentation.service.NotificationAction
 import com.atarusov.musicplayer.features.player.presentation.service.PlayerService
