@@ -123,7 +123,7 @@ class PlayerService : Service() {
                 rewindForwardAction,
                 nextAction
             )
-            .setColor(getColor(R.color.surface))
+            .setColor(getColor(R.color.background))
             .setColorized(true)
             .setStyle(Notification.MediaStyle())
             .build()
