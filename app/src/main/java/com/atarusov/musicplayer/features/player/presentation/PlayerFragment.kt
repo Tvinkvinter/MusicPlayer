@@ -26,12 +26,9 @@ import androidx.navigation.fragment.navArgs
 import com.atarusov.musicplayer.App
 import com.atarusov.musicplayer.R
 import com.atarusov.musicplayer.databinding.FragmentPlayerBinding
-import com.atarusov.musicplayer.features.player.presentation.service.NotificationAction
-import com.atarusov.musicplayer.features.player.presentation.service.PlayerNotificationListener
 import com.atarusov.musicplayer.features.player.presentation.service.PlayerService
 import com.atarusov.musicplayer.features.player.presentation.viewmodel.Action
 import com.atarusov.musicplayer.features.player.presentation.viewmodel.PlayerViewModel
-import com.atarusov.musicplayer.features.player.presentation.viewmodel.ServiceEffect
 import com.atarusov.musicplayer.features.player.presentation.viewmodel.State
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.flow.collectLatest
@@ -162,7 +159,6 @@ class PlayerFragment : Fragment() {
                 findNavController().navigateUp()
             }
         })
-
     }
 
     private fun applyState(state: State) {
@@ -240,5 +236,4 @@ class PlayerFragment : Fragment() {
         private const val PERMISSION_POST_NOTIFICATIONS_REQUEST_CODE = 0
         private const val PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE = 1
     }
-
 }
