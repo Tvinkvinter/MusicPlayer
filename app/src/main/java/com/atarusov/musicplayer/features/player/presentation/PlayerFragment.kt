@@ -159,7 +159,6 @@ class PlayerFragment : Fragment() {
                 findNavController().navigateUp()
             }
         })
-
     }
 
     private fun applyState(state: State) {
@@ -237,5 +236,4 @@ class PlayerFragment : Fragment() {
         private const val PERMISSION_POST_NOTIFICATIONS_REQUEST_CODE = 0
         private const val PERMISSION_FOREGROUND_SERVICE_REQUEST_CODE = 1
     }
-
 }

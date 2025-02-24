@@ -79,8 +79,6 @@ class ApiTrackListFragment : BaseTrackListFragment() {
                 }
             }
         }
-
-
     }
 
     private fun applyState(state: State) {
