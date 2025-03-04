@@ -3,32 +3,38 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/apiTrackListFragment">
+    app:startDestination="@id/remoteTrackListFragment">
     <fragment
-        android:id="@+id/apiTrackListFragment"
-        android:name="com.atarusov.musicplayer.features.apitracks.presentation.ApiTrackListFragment"
-        android:label="ApiTrackListFragment"
-        tools:layout="@layout/fragment_base_track_list">
+        android:id="@+id/remoteTrackListFragment"
+        android:name="com.atarusov.musicplayer.features.tracklist.presentation.TrackListFragment"
+        android:label="TrackListFragment" >
+        <argument
+            android:name="sourceType"
+            app:argType="com.atarusov.musicplayer.features.tracklist.presentation.SourceType"
+            android:defaultValue="Remote"/>
         <action
-            android:id="@+id/action_apiTrackListFragment_to_playerFragment"
+            android:id="@+id/action_trackListFragment_to_playerFragment"
             app:destination="@id/playerFragment" />
     </fragment>
     <fragment
         android:id="@+id/localTrackListFragment"
-        android:name="com.atarusov.musicplayer.features.localtracks.presentation.LocalTrackListFragment"
-        android:label="LocalTrackListFragment"
-        tools:layout="@layout/fragment_base_track_list" >
+        android:name="com.atarusov.musicplayer.features.tracklist.presentation.TrackListFragment"
+        android:label="TrackListFragment" >
+        <argument
+            android:name="sourceType"
+            app:argType="com.atarusov.musicplayer.features.tracklist.presentation.SourceType"
+            android:defaultValue="Local"/>
         <action
-            android:id="@+id/action_localTrackListFragment_to_playerFragment"
+            android:id="@+id/action_trackListFragment_to_playerFragment"
             app:destination="@id/playerFragment" />
     </fragment>
     <fragment
-        android:id="@+id/playerFragment"
-        android:name="com.atarusov.musicplayer.features.player.presentation.PlayerFragment"
-        android:label="fragment_player"
-        tools:layout="@layout/fragment_player" >
+    android:id="@+id/playerFragment"
+    android:name="com.atarusov.musicplayer.features.player.presentation.PlayerFragment"
+    android:label="fragment_player"
+    tools:layout="@layout/fragment_player" >
         <argument
-            android:name="playlist"
-            app:argType="com.atarusov.musicplayer.features.player.presentation.PlaylistByIds" />
+        android:name="playlist"
+        app:argType="com.atarusov.musicplayer.features.player.presentation.PlaylistByIds" />
     </fragment>
 </navigation>

@@ -3,7 +3,7 @@ package com.atarusov.musicplayer.features.player.data
 import com.atarusov.musicplayer.features.player.data.local.TrackLocalDataSource
 import com.atarusov.musicplayer.features.player.data.remote.TrackRemoteDataSource
 import com.atarusov.musicplayer.features.player.domain.TrackRepository
-import com.atarusov.musicplayer.features.player.domain.model.SourceType
+import com.atarusov.musicplayer.features.tracklist.presentation.SourceType
 import com.atarusov.musicplayer.features.player.domain.model.Track
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
