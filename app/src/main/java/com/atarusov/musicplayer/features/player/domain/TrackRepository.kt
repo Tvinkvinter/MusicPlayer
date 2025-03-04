@@ -1,7 +1,7 @@
 package com.atarusov.musicplayer.features.player.domain
 
 import com.atarusov.musicplayer.features.player.domain.model.Track
-import com.atarusov.musicplayer.features.player.domain.model.SourceType
+import com.atarusov.musicplayer.features.tracklist.presentation.SourceType
 import kotlinx.coroutines.flow.Flow
 
 interface TrackRepository {

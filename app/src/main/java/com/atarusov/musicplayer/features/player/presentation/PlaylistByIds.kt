@@ -1,7 +1,7 @@
 package com.atarusov.musicplayer.features.player.presentation
 
 import android.os.Parcelable
-import com.atarusov.musicplayer.features.player.domain.model.SourceType
+import com.atarusov.musicplayer.features.tracklist.presentation.SourceType
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
