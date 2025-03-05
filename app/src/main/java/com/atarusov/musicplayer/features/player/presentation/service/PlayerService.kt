@@ -7,9 +7,10 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Icon
 import android.os.Binder
 import android.os.IBinder
+import android.widget.RemoteViews
+import androidx.annotation.IdRes
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import com.atarusov.musicplayer.App
@@ -73,82 +74,61 @@ class PlayerService : Service() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_HIGH
         )
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(channel)
     }
 
     private fun createNotification(isPlaying: Boolean): Notification {
+        val notificationLayoutCollapsed =
+            RemoteViews(packageName, R.layout.notification_player_collapsed).also {
+                it.setTextViewText(R.id.tv_track_title, currentTrack?.trackTitle)
+                it.setTextViewText(R.id.tv_artist_name, currentTrack?.artistName)
+            }
 
-        val playPauseAction = createNotificationButton(
-            if (isPlaying) R.drawable.ic_pause_notification_24 else R.drawable.ic_play_notification_24,
-            if (isPlaying) R.string.accessibility_play_pause_btn else R.string.accessibility_play_pause_btn,
-            NotificationAction.PLAY_PAUSE
-        )
+        val notificationLayoutExpanded =
+            RemoteViews(packageName, R.layout.notification_player_expanded).also {
+                it.setTextViewText(R.id.tv_track_title, currentTrack?.trackTitle)
+                it.setTextViewText(R.id.tv_artist_name, currentTrack?.artistName)
 
-        val prevAction = createNotificationButton(
-            R.drawable.ic_prev_notification_24,
-            R.string.accessibility_prev_btn,
-            NotificationAction.PREV
-        )
+                val playPauseIcon =
+                    if (isPlaying) R.drawable.ic_pause_notification_24
+                    else R.drawable.ic_play_notification_24
+                it.setImageViewResource(R.id.btn_play_pause, playPauseIcon)
+                it.setButtonAction(R.id.btn_play_pause, NotificationAction.PLAY_PAUSE)
+                it.setButtonAction(R.id.btn_prev, NotificationAction.PREV)
+                it.setButtonAction(R.id.btn_next, NotificationAction.NEXT)
+                it.setButtonAction(R.id.btn_rewind_back, NotificationAction.REWIND_BACK)
+                it.setButtonAction(R.id.btn_rewind_forward, NotificationAction.REWIND_FORWARD)
+            }
 
-        val nextAction = createNotificationButton(
-            R.drawable.ic_next_notification_24,
-            R.string.accessibility_next_btn,
-            NotificationAction.NEXT
-        )
-
-        val rewindBackAction = createNotificationButton(
-            R.drawable.ic_rewind_back_notification_24,
-            R.string.accessibility_rewind_back_btn,
-            NotificationAction.REWIND_BACK
-        )
-
-        val rewindForwardAction = createNotificationButton(
-            R.drawable.ic_rewind_forward_notification_24,
-            R.string.accessibility_rewind_forward_btn,
-            NotificationAction.REWIND_FORWARD
-        )
 
         return Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_icon_24)
-            .setContentTitle(currentTrack?.trackTitle)
-            .setContentText(currentTrack?.artistName)
-            .setOngoing(isPlaying)
-            .setActions(
-                prevAction,
-                rewindBackAction,
-                playPauseAction,
-                rewindForwardAction,
-                nextAction
-            )
+            .setOngoing(true)
             .setColor(getColor(R.color.background))
             .setColorized(true)
-            .setStyle(Notification.MediaStyle())
+            .setStyle(Notification.DecoratedMediaCustomViewStyle())
+            .setCustomContentView(notificationLayoutCollapsed)
+            .setCustomBigContentView(notificationLayoutExpanded)
             .build()
-
     }
 
-    private fun createNotificationButton(
-        iconResource: Int,
-        stringResource: Int,
-        notificationAction: NotificationAction
-    ): Notification.Action {
+    private fun RemoteViews.setButtonAction(
+        @IdRes button: Int,
+        action: NotificationAction
+    ) {
         val pendingIntent = PendingIntent.getService(
-            this, 0,
-            Intent(this, PlayerService::class.java).apply {
-                action = notificationAction.toString()
+            this@PlayerService, 0,
+            Intent(this@PlayerService, PlayerService::class.java).apply {
+                this.action = action.toString()
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        return Notification.Action.Builder(
-            Icon.createWithResource(this, iconResource),
-            getString(stringResource),
-            pendingIntent
-        ).build()
-    }
 
+        setOnClickPendingIntent(button, pendingIntent)
+    }
 
     private fun startPlaybackTimeTransmission() {
         CoroutineScope(Dispatchers.Main).launch {
