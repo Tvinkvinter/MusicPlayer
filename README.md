@@ -13,7 +13,7 @@ A minimalistic and lightweight music player that allows streaming tracks from th
 <img src="https://github.com/user-attachments/assets/79d22c9e-b572-4a3a-bf5c-a91fea0ed862" width="200" />
 
 ## Technologies and Patterns ⚒️
-- **Architecture**: Clean Architecture, MVI
+- **Architecture**: Clean Architecture, MVVM
 - **Core**: Android SDK, Kotlin, XML
 - **Dependency Injection**: Dagger2
 - **Networking**: Retrofit
