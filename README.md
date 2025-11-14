@@ -1,5 +1,5 @@
 # MusicPlayer 🎧
-A minimalistic and lightweight music player that allows streaming tracks from the **Dreezle API** or playing local files from device storage. Supports **background playback** and **notification-based control**.
+A minimalist and lightweight music player that allows streaming tracks from the **Dreezle API** or playing local files from device storage. Supports **background playback** and **notification-based control**.
 
 ## Implemented features ⚙️
 - Browsing charts and searching for tracks
